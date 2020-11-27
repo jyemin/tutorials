@@ -20,13 +20,14 @@ import static graphql.schema.idl.TypeRuntimeWiring.newTypeWiring;
 
 @Component
 public class GraphQLProvider {
-
-
-    @Autowired
-    GraphQLDataFetchers graphQLDataFetchers;
-
+    private final GraphQLDataFetchers graphQLDataFetchers;
     private GraphQL graphQL;
 
+    public GraphQLProvider(@Autowired GraphQLDataFetchers graphQLDataFetchers) {
+        this.graphQLDataFetchers = graphQLDataFetchers;
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
     @PostConstruct
     public void init() throws IOException {
         URL url = Resources.getResource("schema.graphqls");
@@ -45,9 +46,9 @@ public class GraphQLProvider {
     private RuntimeWiring buildWiring() {
         return RuntimeWiring.newRuntimeWiring()
                 .type(newTypeWiring("Query")
+                        .dataFetcher("books", graphQLDataFetchers.getBooksDataFetcher()))
+                .type(newTypeWiring("Query")
                         .dataFetcher("bookById", graphQLDataFetchers.getBookByIdDataFetcher()))
-                .type(newTypeWiring("Book")
-                        .dataFetcher("author", graphQLDataFetchers.getAuthorDataFetcher()))
                 .build();
     }
 

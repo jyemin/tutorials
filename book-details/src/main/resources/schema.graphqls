@@ -1,3 +1,5 @@
+scalar DateTime
+
 type Query {
     books: [Book]
     bookById(id: ID): Book
@@ -6,6 +8,7 @@ type Query {
 type Book {
     id: ID
     name: String
+    publicationDate: DateTime
     pageCount: Int
     authors: [Author]
 }

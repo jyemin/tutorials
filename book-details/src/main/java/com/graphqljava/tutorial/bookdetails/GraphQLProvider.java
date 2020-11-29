@@ -3,6 +3,7 @@ package com.graphqljava.tutorial.bookdetails;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import graphql.GraphQL;
+import graphql.scalars.ExtendedScalars;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
@@ -45,10 +46,11 @@ public class GraphQLProvider {
 
     private RuntimeWiring buildWiring() {
         return RuntimeWiring.newRuntimeWiring()
+                .scalar(ExtendedScalars.DateTime)
                 .type(newTypeWiring("Query")
                         .dataFetcher("books", graphQLDataFetchers.getBooksDataFetcher()))
                 .type(newTypeWiring("Query")
-                        .dataFetcher("bookById", graphQLDataFetchers.getBookByIdDataFetcher()))
+                        .dataFetcher("  bookById", graphQLDataFetchers.getBookByIdDataFetcher()))
                 .build();
     }
 

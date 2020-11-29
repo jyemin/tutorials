@@ -1,18 +1,26 @@
 package com.graphqljava.tutorial.bookdetails;
 
+import com.graphqljava.tutorial.codecs.OffsetDateTimeCodec;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingFieldSelectionSet;
 import graphql.schema.SelectedField;
+import org.bson.BsonType;
 import org.bson.Document;
+import org.bson.codecs.BsonTypeClassMap;
+import org.bson.codecs.DocumentCodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +34,15 @@ public class GraphQLDataFetchers {
     private final MongoCollection<Document> books;
 
     public GraphQLDataFetchers(@Autowired MongoClient client) {
-        books = client.getDatabase("books").getCollection("books");
+        MongoDatabase booksDatabase = client.getDatabase("books");
+        this.books = booksDatabase.getCollection("books")
+                .withCodecRegistry(
+                        CodecRegistries.fromRegistries(
+                                CodecRegistries.fromCodecs(new OffsetDateTimeCodec()),
+                                CodecRegistries.fromProviders(
+                                        new DocumentCodecProvider(
+                                                new BsonTypeClassMap(Map.of(BsonType.DATE_TIME, OffsetDateTime.class)))),
+                                booksDatabase.getCodecRegistry()));
     }
 
     @PostConstruct
@@ -36,6 +52,7 @@ public class GraphQLDataFetchers {
                 new Document(Map.of(
                         "_id", new ObjectId("5fc0439c8a074765114ef626"),
                         "name", "Harry Potter and the Philosopher's Stone",
+                        "publicationDate", OffsetDateTime.parse("1997-06-26T00:00:00Z"),
                         "pageCount", 223,
                         "authors", asList(Map.of(
                                 "_id", "author-1",
@@ -44,6 +61,7 @@ public class GraphQLDataFetchers {
                 new Document(Map.of(
                         "_id", new ObjectId("5fc0439c8a074765114ef627"),
                         "name", "Moby Dick",
+                        "publicationDate", OffsetDateTime.parse("1851-10-18T00:00:00Z"),
                         "pageCount", 635,
                         "authors", asList(Map.of(
                                 "_id", "author-2",
@@ -52,6 +70,7 @@ public class GraphQLDataFetchers {
                 new Document(Map.of(
                         "_id", new ObjectId("5fc0439c8a074765114ef628"),
                         "name", "Interview with the Vampire",
+                        "publicationDate", OffsetDateTime.parse("1976-05-05T00:00:00Z"),
                         "pageCount", 371,
                         "authors", asList(Map.of(
                                 "firstName", "Anne",
@@ -91,4 +110,5 @@ public class GraphQLDataFetchers {
         });
         return projection;
     }
+
 }

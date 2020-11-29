@@ -14,6 +14,7 @@ import org.bson.codecs.BsonTypeClassMap;
 import org.bson.codecs.DocumentCodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,6 +53,7 @@ public class GraphQLDataFetchers {
                 new Document(Map.of(
                         "_id", new ObjectId("5fc0439c8a074765114ef626"),
                         "name", "Harry Potter and the Philosopher's Stone",
+                        "price", Decimal128.parse("10.99"),
                         "publicationDate", OffsetDateTime.parse("1997-06-26T00:00:00Z"),
                         "pageCount", 223,
                         "authors", asList(Map.of(
@@ -61,6 +63,7 @@ public class GraphQLDataFetchers {
                 new Document(Map.of(
                         "_id", new ObjectId("5fc0439c8a074765114ef627"),
                         "name", "Moby Dick",
+                        "price", Decimal128.parse("3.99"),
                         "publicationDate", OffsetDateTime.parse("1851-10-18T00:00:00Z"),
                         "pageCount", 635,
                         "authors", asList(Map.of(
@@ -70,6 +73,7 @@ public class GraphQLDataFetchers {
                 new Document(Map.of(
                         "_id", new ObjectId("5fc0439c8a074765114ef628"),
                         "name", "Interview with the Vampire",
+                        "price", Decimal128.parse("9.99"),
                         "publicationDate", OffsetDateTime.parse("1976-05-05T00:00:00Z"),
                         "pageCount", 371,
                         "authors", asList(Map.of(
@@ -83,11 +87,20 @@ public class GraphQLDataFetchers {
                 createProjectStage(dataFetchingEnvironment.getSelectionSet())))
                 .into(new ArrayList<>());
     }
+
     public DataFetcher<Map<String, Object>> getBookByIdDataFetcher() {
         return dataFetchingEnvironment -> books.aggregate(asList(
                 match(Filters.eq(new ObjectId(dataFetchingEnvironment.<String>getArgument("id")))),
                 createProjectStage(dataFetchingEnvironment.getSelectionSet())))
                 .first();
+    }
+
+    public DataFetcher<List<Map<String, Object>>> getBooksByPriceDataFetcher() {
+        return dataFetchingEnvironment ->
+                books.aggregate(asList(
+                        match(Filters.lt("price", dataFetchingEnvironment.<Decimal128>getArgument("lessThan"))),
+                        createProjectStage(dataFetchingEnvironment.getSelectionSet())))
+                        .into(new ArrayList<>());
     }
 
     private Bson createProjectStage(DataFetchingFieldSelectionSet selectionSet) {
@@ -110,5 +123,4 @@ public class GraphQLDataFetchers {
         });
         return projection;
     }
-
 }

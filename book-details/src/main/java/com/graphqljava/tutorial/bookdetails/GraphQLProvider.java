@@ -2,8 +2,10 @@ package com.graphqljava.tutorial.bookdetails;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import com.graphqljava.tutorial.scalars.Decimal128StringCoercing;
 import graphql.GraphQL;
 import graphql.scalars.ExtendedScalars;
+import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.SchemaGenerator;
@@ -47,10 +49,18 @@ public class GraphQLProvider {
     private RuntimeWiring buildWiring() {
         return RuntimeWiring.newRuntimeWiring()
                 .scalar(ExtendedScalars.DateTime)
+                .scalar(GraphQLScalarType.newScalar()
+                        .name("Decimal128")
+                        .description("An IEEE 754-2008 binary integer decimal representation of a 128-bit decimal value, " +
+                                "supporting 34 decimal digits of significand and an exponent range * of -6143 to +6144")
+                        .coercing(new Decimal128StringCoercing())
+                        .build())
                 .type(newTypeWiring("Query")
                         .dataFetcher("books", graphQLDataFetchers.getBooksDataFetcher()))
                 .type(newTypeWiring("Query")
-                        .dataFetcher("  bookById", graphQLDataFetchers.getBookByIdDataFetcher()))
+                        .dataFetcher("bookById", graphQLDataFetchers.getBookByIdDataFetcher()))
+                .type(newTypeWiring("Query")
+                        .dataFetcher("booksByPrice", graphQLDataFetchers.getBooksByPriceDataFetcher()))
                 .build();
     }
 
